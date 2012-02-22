@@ -1,5 +1,7 @@
 package org.jahia.services.content.impl.cmis;
 
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+
 import javax.jcr.*;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
@@ -13,6 +15,11 @@ import java.util.Calendar;
  * OpenCMIS repository property implementation
  */
 public class CMISPropertyImpl extends CMISItemImpl implements Property {
+
+    public CMISPropertyImpl(CmisObject cmisObject, CMISSessionImpl cmisSessionImpl) {
+        super(cmisObject, cmisSessionImpl);
+    }
+
     public void setValue(Value value) throws ValueFormatException, VersionException, LockException, ConstraintViolationException, RepositoryException {
         //To change body of implemented methods use File | Settings | File Templates.
     }

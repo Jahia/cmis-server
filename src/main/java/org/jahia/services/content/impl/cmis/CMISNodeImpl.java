@@ -1,5 +1,7 @@
 package org.jahia.services.content.impl.cmis;
 
+import org.apache.chemistry.opencmis.client.api.FileableCmisObject;
+
 import javax.jcr.*;
 import javax.jcr.lock.Lock;
 import javax.jcr.lock.LockException;
@@ -14,11 +16,38 @@ import javax.jcr.version.VersionHistory;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * OpenCMIS repository node implementation
  */
 public class CMISNodeImpl extends CMISItemImpl implements Node {
+
+    private FileableCmisObject fileableCmisObject;
+
+    public CMISNodeImpl(FileableCmisObject fileableCmisObject, CMISSessionImpl cmisSessionImpl) {
+        super(fileableCmisObject, cmisSessionImpl);
+        this.fileableCmisObject = fileableCmisObject;
+    }
+
+    @Override
+    public String getPath() throws RepositoryException {
+        List<String> paths = fileableCmisObject.getPaths();
+        if (paths == null || paths.size() == 0) {
+            return null;
+        }
+        String s = paths.get(0).substring(((CMISRepositoryImpl) cmisSessionImpl.getRepository()).getRootPath().length());
+        if (!s.startsWith("/")) {
+            s = "/" + s;
+        }
+        return s;
+    }
+
+    @Override
+    public String getName() throws RepositoryException {
+        return fileableCmisObject.getName();
+    }
+
     public Node addNode(String relPath) throws ItemExistsException, PathNotFoundException, VersionException, ConstraintViolationException, LockException, RepositoryException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -132,11 +161,11 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
     }
 
     public String getUUID() throws UnsupportedRepositoryOperationException, RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return getIdentifier();
     }
 
     public String getIdentifier() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return fileableCmisObject.getId();
     }
 
     public int getIndex() throws RepositoryException {

@@ -1,5 +1,7 @@
 package org.jahia.services.content.impl.cmis;
 
+import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.jackrabbit.rmi.server.ServerAdapterFactory;
 import org.jahia.services.content.JCRStoreProvider;
 import org.slf4j.Logger;
@@ -9,6 +11,8 @@ import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Workspace;
 import java.rmi.Naming;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * CMIS Content Store Provider implementation
@@ -25,12 +29,18 @@ public class CMISContentStoreProvider extends JCRStoreProvider {
 
     private String root;
 
+    private Map<String,String> parameters = new HashMap<String,String>();
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
     public Repository getRepository(){
         if (repo == null) {
             synchronized (CMISContentStoreProvider.class) {
                 if (repo == null) {
                     accessControlManager = new CMISAccessControlManager(readOnly);
-                    repo = new CMISRepositoryImpl(root, accessControlManager);
+                    repo = new CMISRepositoryImpl(root, accessControlManager, parameters);
                     if (rmibind != null) {
                         try {
                             Naming.rebind(rmibind, new ServerAdapterFactory().getRemoteRepository(repo));

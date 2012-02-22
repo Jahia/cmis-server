@@ -1,5 +1,8 @@
 package org.jahia.services.content.impl.cmis;
 
+import org.apache.chemistry.opencmis.client.api.SessionFactory;
+import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
+import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +18,7 @@ public class CMISRepositoryImpl implements Repository {
 
     private String root;
     private String rootPath;
+    private Map<String, String> parameters;
 
     private Map<String, Object> repositoryDescriptors = new HashMap<String, Object>();
 
@@ -135,11 +139,11 @@ public class CMISRepositoryImpl implements Repository {
         repositoryDescriptors.put(Repository.OPTION_XML_IMPORT_SUPPORTED, new CMISValueImpl(false));
     }
 
-    public CMISRepositoryImpl(String root, CMISAccessControlManager accessControlManager) {
+    public CMISRepositoryImpl(String root, CMISAccessControlManager accessControlManager, Map<String, String> parameters) {
         initDescriptors();
         this.root = root;
         this.accessControlManager = accessControlManager;
-
+        this.parameters = parameters;
     }
 
     public String getRoot() {
@@ -166,20 +170,43 @@ public class CMISRepositoryImpl implements Repository {
         }
     }
 
+    private org.apache.chemistry.opencmis.client.api.Session connect(Credentials credentials) {
+        SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
+        if ((credentials != null) && (!parameters.containsKey(SessionParameter.USER))) {
+            if (credentials instanceof SimpleCredentials) {
+                SimpleCredentials simpleCredentials = (SimpleCredentials) credentials;
+                parameters.put(SessionParameter.USER, simpleCredentials.getUserID());
+                parameters.put(SessionParameter.PASSWORD, new String(simpleCredentials.getPassword()));
+            }
+        }
+
+        if (parameters.get(SessionParameter.REPOSITORY_ID) == null) {
+            List<org.apache.chemistry.opencmis.client.api.Repository> repositories = sessionFactory.getRepositories(parameters);
+            if (repositories == null || repositories.size() == 0) {
+                return null;
+            }
+            org.apache.chemistry.opencmis.client.api.Repository repository = repositories.get(0);
+            parameters.put(SessionParameter.REPOSITORY_ID, repository.getId());
+
+        }
+        org.apache.chemistry.opencmis.client.api.Session session = sessionFactory.createSession(parameters);
+        return session;
+    }
+
     public Session login(Credentials credentials, String s) throws LoginException, NoSuchWorkspaceException, RepositoryException {
-        return new CMISSessionImpl(this, credentials);
+        return new CMISSessionImpl(this, credentials, parameters, connect(credentials));
     }
 
     public Session login(Credentials credentials) throws LoginException, RepositoryException {
-        return new CMISSessionImpl(this, credentials);
+        return new CMISSessionImpl(this, credentials, parameters, connect(credentials));
     }
 
     public Session login(String s) throws LoginException, NoSuchWorkspaceException, RepositoryException {
-        return new CMISSessionImpl(this, null);
+        return new CMISSessionImpl(this, null, parameters, connect(null));
     }
 
     public Session login() throws LoginException, RepositoryException {
-        return new CMISSessionImpl(this, null);
+        return new CMISSessionImpl(this, null, parameters, connect(null));
     }
 
     public boolean isSingleValueDescriptor(String key) {

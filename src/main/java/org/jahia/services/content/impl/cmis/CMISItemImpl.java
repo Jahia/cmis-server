@@ -1,5 +1,7 @@
 package org.jahia.services.content.impl.cmis;
 
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+
 import javax.jcr.*;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
@@ -10,6 +12,16 @@ import javax.jcr.version.VersionException;
  * OpenCMIS repository item implementation
  */
 public class CMISItemImpl implements Item {
+
+    protected CMISSessionImpl cmisSessionImpl;
+    protected CmisObject cmisObject;
+
+    public CMISItemImpl(CmisObject cmisObject, CMISSessionImpl cmisSessionImpl) {
+        this.cmisSessionImpl = cmisSessionImpl;
+        this.cmisObject = cmisObject;
+    }
+
+
     public String getPath() throws RepositoryException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
