@@ -15,7 +15,8 @@
         <property name="cmisServiceFactory" ref="CmisServiceFactory" />
     </bean>
 
-    <bean id="CmisServiceFactory" class="org.apache.chemistry.opencmis.jcr.JcrServiceFactory">
+    <bean id="CmisServiceFactory" class="org.jahia.modules.cmis.spring.JahiaJcrServiceFactory">
+        <property name="repository" ref="jackrabbit"/>
     </bean>
 
 </beans>

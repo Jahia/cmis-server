@@ -6,16 +6,29 @@
     <bean name="cmisControllerMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
         <property name="urlMap">
             <map>
-                <entry key="/jmx/**">
+                <entry key="/cmis/atom/**">
                     <bean class="org.jahia.modules.cmis.spring.EmulatingServletWrappingController">
-                        <property name="servletPart" value="/cmis"/>
-                        <property name="servletClass" value="org.jolokia.http.AgentServlet"/>
+                        <property name="servletPart" value="/cmis/atom"/>
+                        <property name="servletClass" value="org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet"/>
+                        <property name="initParameters">
+                            <props>
+                                <prop key="callContextHandler">org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler</prop>
+                            </props>
+                        </property>
+                    </bean>
+                </entry>
+                <!-- Not yet functional as we need to find a way to replace the servlet context initializer and all WDSL loading.
+                <entry key="/cmis/ws/**">
+                    <bean class="org.jahia.modules.cmis.spring.EmulatingServletWrappingController">
+                        <property name="servletPart" value="/cmis/ws"/>
+                        <property name="servletClass" value="com.sun.xml.ws.transport.http.servlet.WSServlet"/>
                         <property name="initParameters">
                             <props>
                             </props>
                         </property>
                     </bean>
                 </entry>
+                -->
             </map>
         </property>
     </bean>
