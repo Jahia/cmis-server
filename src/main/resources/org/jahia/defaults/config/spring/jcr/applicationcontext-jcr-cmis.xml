@@ -11,4 +11,11 @@
         <property name="mountPoint" value="/cmis"/>
     </bean>
 
+    <bean id="CmisLifecycleBean" class="org.jahia.modules.cmis.spring.CmisLifecycleBean">
+        <property name="cmisServiceFactory" ref="CmisServiceFactory" />
+    </bean>
+
+    <bean id="CmisServiceFactory" class="org.apache.chemistry.opencmis.jcr.JcrServiceFactory">
+    </bean>
+
 </beans>

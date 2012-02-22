@@ -39,7 +39,8 @@
     please contact the sales department at sales@jahia.com.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>jahia-modules</artifactId>
@@ -58,7 +59,7 @@
         <url>scm:git:git@github.com:Jahia/cmis.git</url>
         <developerConnection>scm:git:git@github.com:Jahia/cmis.git</developerConnection>
     </scm>
-    
+
     <repositories>
         <repository>
             <id>jahiaRepository</id>
@@ -73,70 +74,76 @@
             <url>http://maven.jahia.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
-    
+
     <dependencies>
-<dependency>
-	<groupId>org.apache.chemistry.opencmis</groupId>
-	<artifactId>chemistry-opencmis-server-jcr</artifactId>
-    <classifier>classes</classifier>
-	<version>0.6.0</version>
-</dependency>
-<dependency>
-	<groupId>org.apache.chemistry.opencmis</groupId>
-	<artifactId>chemistry-opencmis-client-impl</artifactId>
-	<version>0.6.0</version>
-</dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-server-jcr</artifactId>
+            <classifier>classes</classifier>
+            <version>0.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-server-bindings</artifactId>
+            <version>0.6.0</version>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-impl</artifactId>
+            <version>0.6.0</version>
+        </dependency>
     </dependencies>
-    
+
     <build>
-      <plugins>
-          <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-jar-plugin</artifactId>
-              <executions>
-                  <execution>
-                      <id>jar</id>
-                      <phase>package</phase>
-                      <goals>
-                          <goal>jar</goal>
-                      </goals>
-                      <configuration>
-                          <classifier>classes</classifier>
-                      </configuration>
-                  </execution>
-              </executions>
-          </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-war-plugin</artifactId>
-            <configuration>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>classes</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
                     <warSourceExcludes>resources/*.properties</warSourceExcludes>
                     <webResources>
                         <resource>
-                          <directory>${project.build.directory}/native2ascii</directory>
-                          <targetPath>resources</targetPath>
+                            <directory>${project.build.directory}/native2ascii</directory>
+                            <targetPath>resources</targetPath>
                         </resource>
                     </webResources>
-                <archive>
-                    <manifestEntries>
-	                	<Implementation-Title>${project.name}</Implementation-Title>
-	                    <Implementation-Version>${project.version}</Implementation-Version>
-	                    <Implementation-Vendor>${jahia.manifest.vendor.name}</Implementation-Vendor>
-	                    <Implementation-Vendor-Id>${jahia.manifest.vendor.id}</Implementation-Vendor-Id>
-	                    <Implementation-URL>${jahia.manifest.vendor.url}</Implementation-URL>
-	                    <Specification-Title>${project.name}</Specification-Title>
-	                    <Specification-Version>${project.version}</Specification-Version>
-	                    <Specification-Vendor>${jahia.manifest.vendor.name}</Specification-Vendor>
-                        <package-name>${project.name}</package-name>
-                        <root-folder>${project.artifactId}</root-folder>
-                        <depends>default</depends>
-                        <module-type>module</module-type>
-                    </manifestEntries>
-                </archive>
-                <archiveClasses>true</archiveClasses>
-            </configuration>
-        </plugin>
-      </plugins>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor>${jahia.manifest.vendor.name}</Implementation-Vendor>
+                            <Implementation-Vendor-Id>${jahia.manifest.vendor.id}</Implementation-Vendor-Id>
+                            <Implementation-URL>${jahia.manifest.vendor.url}</Implementation-URL>
+                            <Specification-Title>${project.name}</Specification-Title>
+                            <Specification-Version>${project.version}</Specification-Version>
+                            <Specification-Vendor>${jahia.manifest.vendor.name}</Specification-Vendor>
+                            <package-name>${project.name}</package-name>
+                            <root-folder>${project.artifactId}</root-folder>
+                            <depends>default</depends>
+                            <module-type>module</module-type>
+                        </manifestEntries>
+                    </archive>
+                    <archiveClasses>true</archiveClasses>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
     <profiles>
         <profile>

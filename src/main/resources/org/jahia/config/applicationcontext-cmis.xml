@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean name="cmisControllerMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+        <property name="urlMap">
+            <map>
+                <entry key="/jmx/**">
+                    <bean class="org.jahia.modules.cmis.spring.EmulatingServletWrappingController">
+                        <property name="servletPart" value="/cmis"/>
+                        <property name="servletClass" value="org.jolokia.http.AgentServlet"/>
+                        <property name="initParameters">
+                            <props>
+                            </props>
+                        </property>
+                    </bean>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+</beans>
