@@ -81,6 +81,12 @@
             <artifactId>chemistry-opencmis-server-jcr</artifactId>
             <classifier>classes</classifier>
             <version>0.6.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.chemistry.opencmis</groupId>
+                    <artifactId>chemistry-opencmis-server-bindings</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>

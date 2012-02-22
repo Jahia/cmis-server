@@ -1,6 +1,7 @@
 package org.jahia.modules.cmis.spring;
 
 import org.apache.chemistry.opencmis.jcr.JcrServiceFactory;
+import org.jahia.services.search.jcr.JahiaJCRSearchProvider;
 
 import javax.jcr.Repository;
 import java.util.Map;
