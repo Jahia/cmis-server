@@ -3,6 +3,7 @@ package org.jahia.services.content.impl.cmis;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
+import org.jahia.services.content.nodetypes.Name;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -64,7 +65,7 @@ public class CMISSessionImpl implements Session {
 
     public Node getRootNode() throws RepositoryException {
         Folder rootFolder = cmisSession.getRootFolder();
-        return new CMISNodeImpl(rootFolder, this);
+        return new CMISNodeImpl(new Name(rootFolder.getName(),"", ""), rootFolder, this);
     }
 
     public Node getNodeByUUID(String uuid) throws ItemNotFoundException, RepositoryException {
@@ -74,26 +75,38 @@ public class CMISSessionImpl implements Session {
         } catch (IllegalArgumentException iae) {
             // this is expected, we should not be using UUIDs
         }
-        return null;
+        CmisObject cmisObject = cmisSession.getObject(uuid);
+        if (cmisObject == null) {
+            throw new ItemNotFoundException("Couldn't find object with ID " + uuid );
+        }
+        if (cmisObject instanceof Folder) {
+            Folder folder = (Folder) cmisObject;
+            return new CMISNodeImpl(new Name(folder.getName(), "", ""),folder, this);
+        }
+        if (cmisObject instanceof Document) {
+            Document document = (Document) cmisObject;
+            return new CMISNodeImpl(new Name(document.getName(), "", ""), document, this);
+        } else {
+            throw new ItemNotFoundException("Object with ID " + uuid + " has unrecognized type");
+        }
     }
 
     public Item getItem(String path) throws PathNotFoundException, RepositoryException {
         CmisObject cmisObject = null;
-        if ("/".equals(path)) {
-            throw new PathNotFoundException("Can't request / on this provider");
-        }
         try {
             cmisObject = cmisSession.getObjectByPath(path);
         } catch (Throwable t) {
             throw new PathNotFoundException("Couldn't find path " + path, t);
         }
         if (cmisObject instanceof Folder) {
-            return new CMISNodeImpl((Folder)cmisObject, this);
+            Folder folder = (Folder) cmisObject;
+            return new CMISNodeImpl(new Name(folder.getName(), "", ""),folder, this);
         }
         if (cmisObject instanceof Document) {
-            return new CMISNodeImpl((Document)cmisObject, this);
+            Document document = (Document) cmisObject;
+            return new CMISNodeImpl(new Name(document.getName(), "", ""), document, this);
         }
-        return new CMISItemImpl(cmisObject, this);
+        return new CMISItemImpl(new Name(cmisObject.getName(), "", ""), cmisObject, this);
     }
 
     public boolean itemExists(String path) throws RepositoryException {

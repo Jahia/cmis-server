@@ -1,5 +1,6 @@
 package org.jahia.services.content.impl.cmis;
 
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.commons.vfs.FileContent;
 import org.apache.commons.vfs.FileSystemException;
 
@@ -12,29 +13,24 @@ import java.io.InputStream;
  * OpenCMIS repository binary implementation
  */
 public class CMISBinaryImpl implements Binary {
-    InputStream inputStream = null;
+    ContentStream contentStream = null;
 
-    public CMISBinaryImpl(InputStream inputStream) {
-        // here we should copy the content of the inputstream, but where ??? Keeping it in memory is a bad idea.
-        this.inputStream = inputStream;
+    public CMISBinaryImpl(ContentStream contentStream) {
+        this.contentStream = contentStream;
     }
 
     public InputStream getStream() throws RepositoryException {
-        return inputStream;
+        return contentStream.getStream();
     }
 
     public int read(byte[] b, long position) throws IOException, RepositoryException {
-        if (inputStream == null) {
-            getStream();
-        }
-        return inputStream.read(b, (int) position, b.length);
+        return contentStream.getStream().read(b, (int) position, b.length);
     }
 
     public long getSize() throws RepositoryException {
-        return -1;
+        return contentStream.getLength();
     }
 
     public void dispose() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 }

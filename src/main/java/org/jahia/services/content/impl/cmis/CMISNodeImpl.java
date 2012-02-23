@@ -1,8 +1,15 @@
 package org.jahia.services.content.impl.cmis;
 
-import org.apache.chemistry.opencmis.client.api.FileableCmisObject;
+import org.apache.chemistry.opencmis.client.api.*;
+import org.apache.chemistry.opencmis.commons.data.*;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.jahia.api.Constants;
+import org.jahia.services.content.nodetypes.ExtendedNodeType;
+import org.jahia.services.content.nodetypes.Name;
+import org.jahia.services.content.nodetypes.NodeTypeRegistry;
 
 import javax.jcr.*;
+import javax.jcr.Property;
 import javax.jcr.lock.Lock;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
@@ -15,7 +22,9 @@ import javax.jcr.version.VersionException;
 import javax.jcr.version.VersionHistory;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -25,8 +34,8 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
 
     private FileableCmisObject fileableCmisObject;
 
-    public CMISNodeImpl(FileableCmisObject fileableCmisObject, CMISSessionImpl cmisSessionImpl) {
-        super(fileableCmisObject, cmisSessionImpl);
+    public CMISNodeImpl(Name nodeName, FileableCmisObject fileableCmisObject, CMISSessionImpl cmisSessionImpl) {
+        super(nodeName, fileableCmisObject, cmisSessionImpl);
         this.fileableCmisObject = fileableCmisObject;
     }
 
@@ -44,8 +53,23 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
     }
 
     @Override
-    public String getName() throws RepositoryException {
-        return fileableCmisObject.getName();
+    public Item getAncestor(int depth) throws ItemNotFoundException, AccessDeniedException, RepositoryException {
+        return super.getAncestor(depth);    //To change body of overridden methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public Node getParent() throws ItemNotFoundException, AccessDeniedException, RepositoryException {
+        List<Folder> parentFolders = fileableCmisObject.getParents();
+        if (parentFolders == null || parentFolders.size() == 0) {
+            throw new ItemNotFoundException("Couldn't find parent for " + getName());
+        }
+        Folder parentFolder = parentFolders.get(0);
+        return new CMISNodeImpl(new Name(parentFolder.getName(), "", ""), parentFolder, cmisSessionImpl);
+    }
+
+    @Override
+    public int getDepth() throws RepositoryException {
+        return super.getDepth();    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     public Node addNode(String relPath) throws ItemExistsException, PathNotFoundException, VersionException, ConstraintViolationException, LockException, RepositoryException {
@@ -125,35 +149,120 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
     }
 
     public Node getNode(String relPath) throws PathNotFoundException, RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        List<FileableCmisObject> cmisObjects = new ArrayList<FileableCmisObject>();
+        if (fileableCmisObject instanceof Folder) {
+            Folder folder = (Folder) fileableCmisObject;
+            ItemIterable<CmisObject> children = folder.getChildren();
+            for (CmisObject child : children) {
+                if (child.getName().equals(relPath)) {
+                    return new CMISNodeImpl(new Name(child.getName(), "",""), (FileableCmisObject) child, cmisSessionImpl);
+                }
+            }
+        } else if (fileableCmisObject instanceof Document) {
+            // here we need to return the content node.
+            Document document = (Document) fileableCmisObject;
+            if (relPath.equals(Constants.JCR_CONTENT)) {
+                return new CMISContentNodeImpl(new Name(Constants.JCR_CONTENT, "", ""), cmisSessionImpl, document);
+            } else {
+                throw new PathNotFoundException("Couldn't find sub node " + relPath + " on document node !");
+            }
+        }
+        throw new PathNotFoundException("Couldn't find child node " + relPath + " on node " + getName() + "!");
     }
 
     public NodeIterator getNodes() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        List<FileableCmisObject> cmisObjects = new ArrayList<FileableCmisObject>();
+        if (fileableCmisObject instanceof Folder) {
+            Folder folder = (Folder) fileableCmisObject;
+            ItemIterable<CmisObject> children = folder.getChildren();
+            for (CmisObject child : children) {
+                if (child instanceof FileableCmisObject) {
+                    cmisObjects.add((FileableCmisObject) child);
+                }
+            }
+        } else if (fileableCmisObject instanceof Document) {
+            // here we need to return the content node.
+            Document document = (Document) fileableCmisObject;
+        }
+        return new CMISNodeIteratorImpl(cmisSessionImpl, cmisObjects.toArray(new FileableCmisObject[cmisObjects.size()]));
     }
 
     public NodeIterator getNodes(String namePattern) throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISNodeIteratorImpl.EMPTY;
     }
 
     public NodeIterator getNodes(String[] nameGlobs) throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISNodeIteratorImpl.EMPTY;
     }
 
     public Property getProperty(String relPath) throws PathNotFoundException, RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        org.apache.chemistry.opencmis.client.api.Property<?> cmisProperty = fileableCmisObject.getProperty(relPath);
+        if (cmisProperty != null) {
+            return cmisToJCRProperty(new Name(cmisProperty.getLocalName(),"",""), cmisProperty);
+        } else {
+            throw new PathNotFoundException("Property " + relPath + " could not be found !");
+        }
+    }
+
+    private Property cmisToJCRProperty(Name propertyName, org.apache.chemistry.opencmis.client.api.Property<?> cmisProperty) throws RepositoryException {
+        CMISPropertyImpl jcrProperty = new CMISPropertyImpl(propertyName, fileableCmisObject, cmisSessionImpl);
+        if (cmisProperty.isMultiValued()) {
+            List<?> cmisValues = cmisProperty.getValues();
+            Value[] jcrValues = new Value[cmisValues.size()];
+            int i=0;
+            for (Object cmisValue : cmisValues) {
+                Value jcrValue = cmisToJCRValue(cmisValue);
+                jcrValues[i] = jcrValue;
+                i++;
+            }
+            jcrProperty.setValue(jcrValues);
+        } else {
+            jcrProperty.setValue(cmisToJCRValue(cmisProperty.getFirstValue()));
+        }
+        return jcrProperty;
+    }
+
+    private Value cmisToJCRValue(Object cmisValue) {
+        Value jcrValue = null;
+        if (cmisValue instanceof Boolean) {
+            jcrValue = new CMISValueImpl((Boolean) cmisValue);
+        } else if (cmisValue instanceof Calendar) {
+            jcrValue = new CMISValueImpl((Calendar) cmisValue);
+        } else if (cmisValue instanceof PropertyDecimal) {
+            jcrValue = new CMISValueImpl(((PropertyDecimal) cmisValue).getFirstValue());
+        } else if (cmisValue instanceof PropertyHtml) {
+            jcrValue = new CMISValueImpl(((PropertyHtml) cmisValue).getFirstValue());
+        } else if (cmisValue instanceof PropertyInteger) {
+            jcrValue = new CMISValueImpl(new BigDecimal(((PropertyInteger) cmisValue).getFirstValue()));
+        } else if (cmisValue instanceof PropertyString) {
+            jcrValue = new CMISValueImpl(((PropertyString) cmisValue).getFirstValue());
+        } else if (cmisValue instanceof PropertyUri) {
+            jcrValue = new CMISValueImpl(((PropertyUri) cmisValue).getFirstValue());
+        } else {
+            if (cmisValue != null) {
+                jcrValue = new CMISValueImpl(cmisValue.toString());
+            } else {
+                jcrValue = null;
+            }
+        }
+        return jcrValue;
     }
 
     public PropertyIterator getProperties() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        List<org.apache.chemistry.opencmis.client.api.Property<?>> properties = fileableCmisObject.getProperties();
+        List<Property> jcrProperties = new ArrayList<Property>();
+        for (org.apache.chemistry.opencmis.client.api.Property<?> property : properties) {
+            jcrProperties.add(cmisToJCRProperty(new Name(property.getLocalName(), "", ""), property));
+        }
+        return new CMISPropertyIteratorImpl(jcrProperties, jcrProperties.size());
     }
 
     public PropertyIterator getProperties(String namePattern) throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISPropertyIteratorImpl.EMPTY;
     }
 
     public PropertyIterator getProperties(String[] nameGlobs) throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISPropertyIteratorImpl.EMPTY;
     }
 
     public Item getPrimaryItem() throws ItemNotFoundException, RepositoryException {
@@ -173,39 +282,92 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
     }
 
     public PropertyIterator getReferences() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISPropertyIteratorImpl.EMPTY;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public PropertyIterator getReferences(String name) throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISPropertyIteratorImpl.EMPTY;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public PropertyIterator getWeakReferences() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISPropertyIteratorImpl.EMPTY;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public PropertyIterator getWeakReferences(String name) throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISPropertyIteratorImpl.EMPTY;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public boolean hasNode(String relPath) throws RepositoryException {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        if (fileableCmisObject instanceof Folder) {
+            Folder folder = (Folder) fileableCmisObject;
+            ItemIterable<CmisObject> children = folder.getChildren();
+            if (children != null && children.getHasMoreItems()) {
+                Iterator<CmisObject> childIterator = children.iterator();
+                while (childIterator.hasNext()) {
+                    CmisObject child = childIterator.next();
+                    if (child.getName().equals(relPath)) {
+                        return true;
+                    }
+                }
+                return false;
+            } else {
+                return false;
+            }
+        } else if (fileableCmisObject instanceof Document) {
+            // here we need to return the content node.
+            Document document = (Document) fileableCmisObject;
+            if (relPath.equals(Constants.JCR_CONTENT)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     public boolean hasProperty(String relPath) throws RepositoryException {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        org.apache.chemistry.opencmis.client.api.Property<?> property = fileableCmisObject.getProperty(relPath);
+        if (property != null) {
+            return true;
+        }
+        return false;
     }
 
     public boolean hasNodes() throws RepositoryException {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        if (fileableCmisObject instanceof Folder) {
+            Folder folder = (Folder) fileableCmisObject;
+            ItemIterable<CmisObject> children = folder.getChildren();
+            if (children != null && children.getHasMoreItems()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     public boolean hasProperties() throws RepositoryException {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        List<org.apache.chemistry.opencmis.client.api.Property<?>> properties = fileableCmisObject.getProperties();
+        if (properties != null && properties.size() > 0) {
+            return true;
+        }
+        return false;
     }
 
     public NodeType getPrimaryNodeType() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return getExtendedPrimaryNodeType();
+    }
+
+    public ExtendedNodeType getExtendedPrimaryNodeType() throws RepositoryException {
+        ObjectType fileType = fileableCmisObject.getType();
+        if (fileType.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+            return NodeTypeRegistry.getInstance().getNodeType(Constants.JAHIANT_FILE);
+        } else if (fileType.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
+            return NodeTypeRegistry.getInstance().getNodeType(Constants.JAHIANT_FOLDER);
+        }
+        return NodeTypeRegistry.getInstance().getNodeType(Constants.JAHIANT_FILE);
     }
 
     public NodeType[] getMixinNodeTypes() throws RepositoryException {
@@ -213,7 +375,7 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
     }
 
     public boolean isNodeType(String nodeTypeName) throws RepositoryException {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        return getPrimaryNodeType().isNodeType(nodeTypeName);
     }
 
     public void setPrimaryType(String nodeTypeName) throws NoSuchNodeTypeException, VersionException, ConstraintViolationException, LockException, RepositoryException {
@@ -265,7 +427,7 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
     }
 
     public NodeIterator getSharedSet() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return CMISNodeIteratorImpl.EMPTY;
     }
 
     public void removeSharedSet() throws VersionException, LockException, ConstraintViolationException, RepositoryException {
@@ -331,4 +493,9 @@ public class CMISNodeImpl extends CMISItemImpl implements Node {
     public String[] getAllowedLifecycleTransistions() throws UnsupportedRepositoryOperationException, RepositoryException {
         return new String[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    public boolean isNode() {
+        return true;
+    }
+
 }

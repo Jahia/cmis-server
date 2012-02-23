@@ -1,6 +1,7 @@
 package org.jahia.services.content.impl.cmis;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.jahia.services.content.nodetypes.Name;
 
 import javax.jcr.*;
 import javax.jcr.lock.LockException;
@@ -15,10 +16,12 @@ public class CMISItemImpl implements Item {
 
     protected CMISSessionImpl cmisSessionImpl;
     protected CmisObject cmisObject;
+    protected Name name;
 
-    public CMISItemImpl(CmisObject cmisObject, CMISSessionImpl cmisSessionImpl) {
+    public CMISItemImpl(Name name, CmisObject cmisObject, CMISSessionImpl cmisSessionImpl) {
         this.cmisSessionImpl = cmisSessionImpl;
         this.cmisObject = cmisObject;
+        this.name = name;
     }
 
 
@@ -27,15 +30,15 @@ public class CMISItemImpl implements Item {
     }
 
     public String getName() throws RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return name.getLocalName();
     }
 
     public Item getAncestor(int depth) throws ItemNotFoundException, AccessDeniedException, RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new ItemNotFoundException("No valid ancestor for " + getName());
     }
 
     public Node getParent() throws ItemNotFoundException, AccessDeniedException, RepositoryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new ItemNotFoundException("No valid parent for " + getName());
     }
 
     public int getDepth() throws RepositoryException {

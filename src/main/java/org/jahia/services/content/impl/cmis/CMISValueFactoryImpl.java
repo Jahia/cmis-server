@@ -1,8 +1,11 @@
 package org.jahia.services.content.impl.cmis;
 
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+
 import javax.jcr.*;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
@@ -70,11 +73,17 @@ public class CMISValueFactoryImpl implements ValueFactory {
      }
 
      public Value createValue(InputStream value) {
-         return new CMISValueImpl(new CMISBinaryImpl(value));
+         ContentStreamImpl contentStreamImpl = new ContentStreamImpl();
+         contentStreamImpl.setStream(value);
+         contentStreamImpl.setLength(BigInteger.valueOf(-1));
+         return new CMISValueImpl(new CMISBinaryImpl(contentStreamImpl));
      }
 
      public Value createValue(InputStream value, long size) {
-         return new CMISValueImpl(new CMISBinaryImpl(value));
+         ContentStreamImpl contentStreamImpl = new ContentStreamImpl();
+         contentStreamImpl.setStream(value);
+         contentStreamImpl.setLength(BigInteger.valueOf(size));
+         return new CMISValueImpl(new CMISBinaryImpl(contentStreamImpl));
      }
 
      public Value createValue(Binary value) {
@@ -90,7 +99,10 @@ public class CMISValueFactoryImpl implements ValueFactory {
      }
 
      public Binary createBinary(InputStream stream) throws RepositoryException {
-         return new CMISBinaryImpl(stream);  //To change body of implemented methods use File | Settings | File Templates.
+         ContentStreamImpl contentStreamImpl = new ContentStreamImpl();
+         contentStreamImpl.setStream(stream);
+         contentStreamImpl.setLength(BigInteger.valueOf(-1));
+         return new CMISBinaryImpl(contentStreamImpl);  //To change body of implemented methods use File | Settings | File Templates.
      }
     
 }
