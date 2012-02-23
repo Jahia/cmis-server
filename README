@@ -1,11 +1,17 @@
 
 Integration of Jahia and OpenCMIS client and server
 
-For the moment only the CMIS atom server is implemented, and only supports browsing nt:file and nt:folder sub-types
+For the moment only the CMIS atom server is implemented, and only supports browsing nt:file and nt:folder sub-types,
+as well as jnt:virtualSitesFolder and jnt:virtualsite.
+
 The Atom URL is :
 
 http://localhost:8080/cms/cmis/atom/
 
 (don't forget the trailing slash or you will get an exception). Login credentials are valid Jahia credentials. You can
 connect using the CMIS workbench available here : http://chemistry.apache.org/java/download.html
+
+It is also possible to consume a CMIS server using the connector. See the configuration in the applicationcontext-jcr-cmis.xml
+file. It has been tested with an OpenCMIS Server Fileshare web application deployed on a seperate Tomcat instance (
+configured on port 9080). Testing on different servers will be required.
 

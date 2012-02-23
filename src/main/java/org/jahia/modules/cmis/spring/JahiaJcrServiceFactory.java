@@ -38,7 +38,7 @@ public class JahiaJcrServiceFactory extends JcrServiceFactory {
                 "jnt:virtualsite",
         };
         typeHandlerManager.addHandler(new JahiaFolderTypeHandler(nodeTypes));
-        typeHandlerManager.addHandler(new DefaultDocumentTypeHandler());
+        typeHandlerManager.addHandler(new JahiaDocumentTypeHandler());
         typeHandlerManager.addHandler(new DefaultUnversionedDocumentTypeHandler());
         return typeHandlerManager;
     }

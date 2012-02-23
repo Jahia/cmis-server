@@ -4,6 +4,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+    <!-- This CMIS store provider has been tested using the opencmis-server-fileshare webapplication running on a seperate Tomcat instances -->
     <bean id="CMISStoreProvider" class="org.jahia.services.content.impl.cmis.CMISContentStoreProvider" parent="AbstractJCRStoreProvider" depends-on="DefaulJCRStoreProvider">
         <property name="key" value="cmis"/>
         <property name="root" value="file:///"/>
