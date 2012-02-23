@@ -17,7 +17,7 @@ public class CMISRepositoryImpl implements Repository {
     private static final transient Logger logger = LoggerFactory.getLogger(CMISRepositoryImpl.class);
 
     private String root;
-    private String rootPath;
+    private String rootPath = "";
     private Map<String, String> parameters;
 
     private Map<String, Object> repositoryDescriptors = new HashMap<String, Object>();
