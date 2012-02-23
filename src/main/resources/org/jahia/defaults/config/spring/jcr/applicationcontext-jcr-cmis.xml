@@ -18,6 +18,22 @@
                 <entry key="org.apache.chemistry.opencmis.binding.atompub.url" value="http://localhost:9080/opencmis-server/atom"/>
             </map>
         </property>
+        <property name="propertyMapping">
+            <map>
+                <entry key="cmis:objectId" value="" />
+                <entry key="cmis:name" value="" />
+                <entry key="cmis:createdBy" value="" />
+                <entry key="cmis:lastModifiedBy" value="" />
+                <entry key="cmis:creationDate" value="" />
+                <entry key="cmis:lastModificationDate" value="" />
+                <entry key="cmis:changeToken" value="" />
+                <entry key="cmis:baseTypeId" value="" />
+                <entry key="cmis:objectTypeId" value="" />
+                <entry key="cmis:path" value="" />
+                <entry key="cmis:parentId" value="" />
+                <entry key="cmis:allowedChildObjectTypeIds" value="" />
+            </map>
+        </property>
     </bean>
 
     <bean id="CmisLifecycleBean" class="org.jahia.modules.cmis.spring.CmisLifecycleBean">

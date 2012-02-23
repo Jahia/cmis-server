@@ -6,6 +6,7 @@ import org.jahia.services.content.nodetypes.ExtendedNodeDefinition;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.Name;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
+import sun.security.util.BigInt;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.jcr.*;
@@ -17,6 +18,7 @@ import javax.jcr.version.VersionException;
 import javax.jcr.version.VersionHistory;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -155,7 +157,20 @@ public class CMISContentNodeImpl extends CMISItemImpl implements Node {
             value = valueFactory.createValue(new CMISBinaryImpl(cmisDocument.getContentStream()));
             return new CMISPropertyImpl(new Name(s, "", ""), cmisDocument, cmisSessionImpl, value) {
                 public long getLength() throws ValueFormatException, RepositoryException {
-                    return cmisDocument.getContentStream().getLength();
+                    long length = cmisDocument.getContentStream().getLength();
+                    if (length == -1) {
+                        org.apache.chemistry.opencmis.client.api.Property cmisContentStreamLengthProperty = cmisDocument.getProperty("cmis:contentStreamLength");
+                        if (cmisContentStreamLengthProperty != null) {
+                            Object value = cmisContentStreamLengthProperty.getFirstValue();
+                            if (value instanceof BigInteger) {
+                                BigInteger bigInteger = (BigInteger) value;
+                                length = bigInteger.longValue();
+                            } else {
+                                length = Long.parseLong(value.toString());
+                            }
+                        }
+                    }
+                    return length;
                 }
 
                 public InputStream getStream() throws ValueFormatException, RepositoryException {

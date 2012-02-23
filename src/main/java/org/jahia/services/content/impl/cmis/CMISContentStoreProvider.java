@@ -31,8 +31,14 @@ public class CMISContentStoreProvider extends JCRStoreProvider {
 
     private Map<String,String> parameters = new HashMap<String,String>();
 
+    private Map<String,String> propertyMapping = new HashMap<String,String>();
+
     public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
+    }
+
+    public void setPropertyMapping(Map<String, String> propertyMapping) {
+        this.propertyMapping = propertyMapping;
     }
 
     public Repository getRepository(){
