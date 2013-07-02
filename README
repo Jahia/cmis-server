@@ -2,7 +2,8 @@
 Integration of Jahia and OpenCMIS client and server
 
 For the moment only the CMIS atom server is implemented, and only supports browsing nt:file and nt:folder sub-types,
-as well as jnt:virtualSitesFolder and jnt:virtualsite.
+as well as jnt:virtualSitesFolder and jnt:virtualsite. Initial work to integrate a CMIS JCR provider has been started
+but is not yet functional.
 
 The Atom URL is :
 
