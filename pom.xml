@@ -51,6 +51,7 @@
 
     <modules>
         <module>sandbox</module>
+        <module>cmis-external-provider</module>
     </modules>
 
     <build>
