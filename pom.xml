@@ -3,20 +3,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jahia.server</groupId>
-    <artifactId>cmis-root</artifactId>
+    <artifactId>cmis-server-root</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Jahia CMIS Root project</name>
+    <name>Jahia CMIS Server Root project</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <scm>
-        <connection>scm:git:git@github.com:Jahia/cmis.git</connection>
-        <url>scm:git:git@github.com:Jahia/cmis.git</url>
-        <developerConnection>scm:git:git@github.com:Jahia/cmis.git</developerConnection>
+        <connection>scm:git:git@github.com:Jahia/cmis-server.git</connection>
+        <url>scm:git:git@github.com:Jahia/cmis-server.git</url>
+        <developerConnection>scm:git:git@github.com:Jahia/cmis-server.git</developerConnection>
     </scm>
 
     <repositories>
@@ -51,7 +51,6 @@
 
     <modules>
         <module>sandbox</module>
-        <module>cmis-external-provider</module>
     </modules>
 
     <build>
